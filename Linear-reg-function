@@ -1,0 +1,97 @@
+##Megan Sims
+
+##Problem Set 5
+
+
+rm(list = ls())
+
+
+my_lm <- function(x, y){
+  if(length(x) != length(y)){
+    stop("X and Y must be of equal length")
+  }
+  else {
+
+
+    ##linear regression equation##
+    beta_numerator <- sum((x - mean(x)) * (y - mean(y)))
+    beta_denominator <- var(x) * (length(x) - 1)
+    beta <- beta_numerator / beta_denominator
+    intercept <- mean(y) - (beta * mean(x))
+ 
+
+    ##Residuals##
+    SS_total <- var(y) * (length(y) - 1)
+    SS_residual <- SS_total - (beta * beta_numerator)
+    df_residual <- length(y) - 2
+    MS_residual <- SS_residual / df_residual
+  
+
+    ##Regression##
+    SS_regression <- SS_total - SS_residual
+    df_regression <- 1
+    MS_regression <- SS_regression / 1
+
+
+    ##F ratio and p value##
+    if(MS_residual == 0){
+      F_ratio <- 0
+    }
+    else {
+      F_ratio <- MS_regression / MS_residual
+    }
+    p_value <- pf(F_ratio, df_regression, df_residual, lower.tail = FALSE)
+
+
+    ##Liner equation for title##
+    if(intercept < 0){
+      equation <- paste("Y = ", round(beta, 2), "X - ",  
+                        abs(round(intercept, 2)), sep = "")
+    }
+    else {
+      equation <- paste("Y = ", round(beta, 2), "X + ", round(intercept, 2), 
+                        sep = "")
+    }
+
+
+    ##Stars for significance##
+    if(p_value <= 0.001){
+      star <- "***"
+    }
+    else if(p_value <= 0.01){
+      star <- "**"
+    }
+    else if(p_value <= 0.05){
+      star <- "*"
+    }
+    else{ 
+      star <- ""
+    }
+
+
+    ##Plot##
+    graph <- plot(x, y, main = paste(equation, "; F = ", round(F_ratio, 2), 
+                  star, sep = ""), pch = 16)
+    line <- abline(intercept, beta)
+
+
+    ##Output##
+    aov_head <- paste("Response: ", deparse(substitute(y)), sep = "")
+    aov_table_p <- paste(p_value, star, sep = "")
+    aov_table <- data.frame("Df" = c(round(df_regression, 3), 
+                                     round(df_residual, 3)), 
+                            "Sum Sq" = c(round(SS_regression, 3), 
+                                         round(SS_residual, 3)),
+                            "Mean Sq" = c(round(MS_regression, 3), 
+                                          round(MS_residual, 3)),
+                            "F value" = c(round(F_ratio, 3), " "), 
+                            "Pr(>F)" = c(aov_table_p, " "),
+                            row.names = c(deparse(substitute(x)), "Residuals"),
+                            check.names = FALSE)
+    aov_end <- "Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.01 ' ' 1"
+  }
+  print(aov_head)
+  print(aov_table)
+  print(aov_end)
+  return(c(graph, line, paste("Linear Regression Equation: ", equation, sep = "")))
+}
